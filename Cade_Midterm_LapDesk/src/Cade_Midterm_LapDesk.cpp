@@ -20,9 +20,22 @@
 #include "neopixel.h"
 #include "Adafruit_BME280.h"
 #include "Button.h"
+#include "IoTTimer.h"
 
 SYSTEM_MODE(MANUAL);
 //DECLARE
+
+
+//Declare the timer and Pixelfill function
+IoTTimer timerOn;
+void pixelFill(int first, int last, int color);
+
+//Declare my neopixel strip
+Adafruit_NeoPixel pixels (8, SPI1, WS2812B);
+const int LEDs = 8;
+int pixelBright;
+int i;
+int z;
 
 //declare my wemo
 const int myWemo=5;
@@ -34,7 +47,6 @@ int color;
 Encoder myEncoder (D3, D4);
 //  Hue variables
 int brightness; // need a variable for mapping
-
 int position = 0;
 int newPosition;
 
@@ -74,6 +86,12 @@ const int OLED_RESET =-1;
 Adafruit_SSD1306 display(OLED_RESET);
 
 
+
+
+
+
+
+
 void setup() {
 
 // Initialize the bme
@@ -97,20 +115,28 @@ status = bme.begin(0x76);
 
 //initialize the OLED
 display.begin(SSD1306_SWITCHCAPVCC,0x3C);
-delay(2000);
     display.clearDisplay();
 
 display.setTextSize(1);
 display.setTextColor(WHITE);
 display.setCursor(0,0);
-display.printf("Hello world!\n OLED Screen Active\n");
-delay(5000);
+
     display.clearDisplay();
 
+
+//initialize the pixels and timer function
+pixels.begin();
+timerOn.startTimer(15000);
 }
 
-void loop() {
 
+
+
+
+
+
+void loop() {
+ 
   //use bme to read all values
 tempC = bme.readTemperature();
 pascals = bme.readPressure();
@@ -125,24 +151,21 @@ display.clearDisplay();
 display.setTextSize(1);
 display.setTextColor(WHITE);
 display.setCursor(0,0);  
-display.printf ("My temperature is %0.1f %c\n",tempF,degree);
-display.printf("My humidity is %0.1f\n", humidRH);
-display.printf("My pressure is %0.1f\n", mercury);
+display.printf ("The temperature is %0.1f %c\n",tempF,degree);
+display.printf("The humidity is %0.1f\n", humidRH);
+display.printf("The pressure is %0.1f\n", mercury);
 display.display();
 
 //print to monitor
-Serial.printf ("My temperature is %0.1f %c\n",tempF,degree);
-Serial.printf("My humidity is %f\n", humidRH);
-Serial.printf("My pressure is %f\n", mercury); 
+Serial.printf ("The temperature is %0.1f %c\n",tempF,degree);
+Serial.printf("The humidity is %f\n", humidRH);
+Serial.printf("The pressure is %f\n", mercury); 
 
-
+//second button changes colors
 if (buttonDos.isClicked()) {
-
     (color++);
 }
-  
   Serial.printf("Setting color of bulb %i to color %06i\n",BULB,HueRainbow[color%7]);
-  
   
 //ENCODER BUTTON DATA
 buttonPinState = digitalRead(buttonpin);
@@ -163,7 +186,7 @@ position = myEncoder.read();
         Serial.printf("Encoder is %d\n", position);
         newPosition = position; 
   }
-    
+  
  // bound the inputs
   if (position> 95) {
     myEncoder.write(95);
@@ -176,15 +199,12 @@ position = myEncoder.read();
   }
   setHue(BULB,switchState,HueRainbow[color%7],brightness,255);
 
-//BUTTON TO CONTROL WEMO
-//buttonTresState = digitalRead(buttonThree);
-
+//BUTTON TO CONTROL WEMO   
 //if button three is clicked, turn on and switch states.
 if (buttonTres.isClicked()) {
   buttonTresState = !buttonTresState;
 }
    
-  
 if (buttonTresState)   {
   wemoWrite (5,HIGH);
     Serial.printf("Turning on Wemo# %i\n",myWemo);
@@ -193,5 +213,20 @@ else {
   Serial.printf("Turning off Wemo# %i\n",myWemo);
     wemoWrite(5,LOW);
 }
+
+//TIMER CONTROL
+//timer controls, one minute setoff
+if (timerOn.isTimerReady()) {
+  pixelFill(0,7,blue);
+  pixels.setBrightness(8);
 }
-     
+}
+
+void  pixelFill (int first, int last, int color) {
+   int i;
+   for (i = first; i<= last; i++) {
+      pixels.setPixelColor(i,color);
+      pixels.show();
+
+   }
+}
