@@ -44,10 +44,10 @@ const int myWemo=5;
 const int BULB=2; 
 int color;
 
-Encoder myEncoder (D3, D4);
+Encoder myEncoder(D18,D19);
 //  Hue variables
 int brightness; // need a variable for mapping
-int position = 0;
+int position;
 int newPosition;
 
 
@@ -124,9 +124,10 @@ display.setCursor(0,0);
     display.clearDisplay();
 
 
-//initialize the pixels and timer function
-pixels.begin();
-timerOn.startTimer(15000);
+// //initialize the pixels and timer function
+ pixels.begin();
+
+ timerOn.startTimer(15000);
 }
 
 
@@ -168,24 +169,22 @@ if (buttonDos.isClicked()) {
   Serial.printf("Setting color of bulb %i to color %06i\n",BULB,HueRainbow[color%7]);
   
 //ENCODER BUTTON DATA
+// Encoder switch turns lights on and off, knob increase brightness.exit
+
 buttonPinState = digitalRead(buttonpin);
 
 //if button is clicked, turn on/off and switch states. WORKS
 if (button.isClicked()) {
   switchState = !switchState;
+  Serial.println("Encoder button is clicked");
 }
-//map the encoder to the brightness of the bulb
-  brightness = map(newPosition,0,95,0,255); 
-
-  //map one encoder readouts to the HUE LIGHT 
-  newPosition = map(position,0,95,0,255);
-
+  
    //ENCODER KNOB
 position = myEncoder.read();
-  if (position != newPosition){
+  //if (position != newPosition){
         Serial.printf("Encoder is %d\n", position);
-        newPosition = position; 
-  }
+      //  newPosition = position; 
+  //}
   
  // bound the inputs
   if (position> 95) {
@@ -197,7 +196,15 @@ position = myEncoder.read();
     myEncoder.write(0);
     position = 0;
   }
+
+  //map one encoder readouts to the HUE LIGHT 
+ // newPosition = map(position,0,95,0,255);
+
+//map the encoder to the brightness of the bulb
+  brightness = map(position,0,95,0,255); 
+
   setHue(BULB,switchState,HueRainbow[color%7],brightness,255);
+
 
 //BUTTON TO CONTROL WEMO   
 //if button three is clicked, turn on and switch states.
@@ -214,8 +221,9 @@ else {
     wemoWrite(5,LOW);
 }
 
+
 //TIMER CONTROL
-//timer controls, one minute setoff
+//timer controls, 15 seconds to active
 if (timerOn.isTimerReady()) {
   pixelFill(0,7,blue);
   pixels.setBrightness(8);
@@ -229,4 +237,5 @@ void  pixelFill (int first, int last, int color) {
       pixels.show();
 
    }
+
 }
