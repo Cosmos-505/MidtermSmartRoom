@@ -31,8 +31,8 @@ IoTTimer timerOn;
 void pixelFill(int first, int last, int color);
 
 //Declare my neopixel strip
-Adafruit_NeoPixel pixels (8, SPI1, WS2812B);
-const int LEDs = 8;
+Adafruit_NeoPixel pixels (30, SPI1, WS2812B);
+const int LEDs = 30;
 int pixelBright;
 int i;
 int z;
@@ -51,7 +51,7 @@ int position;
 int newPosition;
 
 
-//declare my button
+//declare my (encoder) button
 int buttonpin = D11;
 Button button(buttonpin);
 bool buttonPinState;
@@ -67,6 +67,12 @@ int buttonThree = D13;
 Button buttonTres(buttonThree);
 bool buttonTresState;
 int switchTresState;
+
+//declare my fourth button
+int buttonFour = D14;
+Button buttonCuatro (buttonFour);
+bool buttonCuatroState;
+int switchCuatroState;
 
 //Declare the BME
 Adafruit_BME280 bme;  // the I2C device that measures
@@ -125,9 +131,13 @@ display.setCursor(0,0);
 
 
 // //initialize the pixels and timer function
- pixels.begin();
+pixels.begin();
+pixels.setBrightness(8);
+pixels.clear();
+pixels.show();
 
- timerOn.startTimer(15000);
+ timerOn.startTimer(5000);
+
 }
 
 
@@ -221,15 +231,31 @@ else {
     wemoWrite(5,LOW);
 }
 
-
-//TIMER CONTROL
-//timer controls, 15 seconds to active
+// //TIMER CONTROL
+// //timer controls, 5 seconds to active
 if (timerOn.isTimerReady()) {
-  pixelFill(0,7,blue);
+  pixelFill(0,29,violet);
   pixels.setBrightness(8);
 }
+
+
+// //BUTTON FOUR RESETS THE TIMER
+if (buttonCuatro.isClicked()) {
+pixels.clear();
+pixels.show();
+  timerOn.startTimer(5000);
 }
 
+
+
+}
+
+
+
+
+
+//FUNCTIONS
+// FUNCTIONS
 void  pixelFill (int first, int last, int color) {
    int i;
    for (i = first; i<= last; i++) {
